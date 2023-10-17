@@ -1,5 +1,7 @@
 import streamlit as st 
-
+import pandas as pd
+import openai
+import os
 
 st.title('KANGAROO')
 st.markdown('*****')
@@ -13,15 +15,12 @@ if st.checkbox('**Descubre la experiencia Kangaroo**'):
     st.write('Si viajaste a Florida y no sabes donde ir a comer, Kangaroo tiene la solución para vos')
 
 
-import streamlit as st
-import openai
-import os
-
 openai.api_key = st.secrets['OPENAI_API_KEY']
 
 
-st.title("Kanguro ChatGPT!🤖")
+st.title("Kanguro GPT!🤖")
 
+#dataset = pd.read_csv(r"C:\Users\flori\Desktop\Proyecto_final_streamlit\mini.csv") 
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -45,7 +44,11 @@ if user_prompt := st.chat_input("Tu consulta"):
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
-
+        
+        # Agregar el contenido del conjunto de datos como mensaje
+        #st.session_state.messages.append({"role": "assistant", "content":dataset.to_string(index=False)})
+            
+    
         for response in openai.ChatCompletion.create(
             model=st.session_state.model,
             messages=[
@@ -60,6 +63,5 @@ if user_prompt := st.chat_input("Tu consulta"):
         message_placeholder.markdown(full_response)
 
     st.session_state.messages.append({"role": "assistant", "content": full_response})
-
 
 
