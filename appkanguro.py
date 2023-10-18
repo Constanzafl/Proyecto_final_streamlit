@@ -74,10 +74,6 @@ if st.button("Obtener Latitud y Longitud"):
         st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
 
 
-
-
-
-
 st.title("Kanguro GPT!🤖")
 st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 
@@ -86,11 +82,11 @@ st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Agrega el contenido del DataFrame al historial de conversación solo una vez
-if not st.session_state.get("data_added", False):
-    dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
-    st.session_state.messages.append({"role": "assistant", "content": dataset_message})
-    st.session_state.data_added = True
+    # Agrega el contenido del DataFrame al historial de conversación solo una vez
+    if not st.session_state.get("data_added", False):
+        dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
+        st.session_state.messages.append({"role": "assistant", "content": dataset_message})
+        st.session_state.data_added = True
 
 
 # initialize model
