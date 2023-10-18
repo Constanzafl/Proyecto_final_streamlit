@@ -11,7 +11,8 @@ def get_recommendations(restaurant_name):
     if not restaurant_row.empty:
         recommendations = restaurant_row['Recommendations_content'].iloc[0]
         # Dividir las recomendaciones por líneas o cualquier otro separador
-        recommendations_list = recommendations.split('\n')  # Cambia el separador según corresponda
+        recommendations_list = [item.strip() for item in recommendations.split(',')]
+ 
         recommendations_df = pd.DataFrame({'Recommendations': recommendations_list})
         return recommendations_df
     else:
