@@ -74,6 +74,9 @@ if 'latitud' in locals() and 'longitud' in locals():
             # Filtrar los lugares dentro del radio especificado
             lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
             dataset = lugares_cercanos2
+            
+            dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
+            st.session_state.messages.append({"role": "assistant", "content": dataset_message})
                         
 if "messages" not in st.session_state:
     st.session_state.messages = []
