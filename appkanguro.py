@@ -50,8 +50,8 @@ if st.button("Obtener Latitud y Longitud"):
     else:
         st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
 
-latitud_usuario = latitud
-longitud_usuario = longitud
+latitud_usuario = resultado[0]
+longitud_usuario = resultado[1]
 # Definir el radio de 2 km
 radio_km = 2
 resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
