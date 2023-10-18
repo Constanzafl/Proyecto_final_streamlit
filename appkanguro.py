@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import openai
 import os
+import requests
 
 st.title('KANGAROO')
 st.markdown('*****')
@@ -15,7 +16,40 @@ if st.checkbox('**Descubre la experiencia Kangaroo**'):
     st.write('Si viajaste a Florida y no sabes donde ir a comer, Kangaroo tiene la solución para vos')
 
 
-#openai.api_key = st.secrets['OPENAI_API_KEY']
+openai.api_key = st.secrets['OPENAI_API_KEY']
+
+api_key= st.secrets['API_KEY']
+
+
+# Crear una función para obtener la latitud y longitud
+def obtener_latitud_longitud(direccion):
+    url = f'https://maps.googleapis.com/maps/api/geocode/json?address={direccion}&key={api_key}'
+    response = requests.get(url)
+    data = response.json()
+    
+    if data['status'] == 'OK':
+        latitud = data['results'][0]['geometry']['location']['lat']
+        longitud = data['results'][0]['geometry']['location']['lng']
+        return latitud, longitud
+    else:
+        return None
+
+# Interfaz de usuario con Streamlit
+st.title("Geocodificación de Direcciones")
+
+direccion = st.text_input("Ingresa tu dirección:")
+
+if st.button("Obtener Latitud y Longitud"):
+    if direccion:
+        resultado = obtener_latitud_longitud(direccion)
+        if resultado:
+            latitud, longitud = resultado
+            st.write(f'Latitud: {latitud}, Longitud: {longitud}')
+        else:
+            st.error('No se pudo geocodificar la dirección.')
+    else:
+        st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
+
 
 st.title("Kanguro GPT!🤖")
 
