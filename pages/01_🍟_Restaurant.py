@@ -28,7 +28,7 @@ st.markdown('Recomienda restaurantes a partir de poner el nombre de un Restauran
 selected_restaurant = st.selectbox("Selecciona un restaurante:", restaurants)
 
 if st.button("Obtener Recomendaciones"):
-    recommendations_content = content_based_recommendations(selected_restaurant)
+    recommendations_content = content_based_recommendations(selected_restaurant, cosine_sim, df4_final)
     st.subheader(f"Recomendaciones basadas en contenido para {selected_restaurant}:")
     
 
@@ -36,3 +36,4 @@ if st.button("Obtener Recomendaciones"):
     formatted_recommendations = "\n".join([f"{i+1}. {restaurant}" for i, restaurant in enumerate(recommendations_content)])
     
     st.markdown(formatted_recommendations)
+    
