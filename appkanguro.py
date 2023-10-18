@@ -67,7 +67,17 @@ if st.button("Obtener Latitud y Longitud"):
             
             # Filtrar los lugares dentro del radio especificado
             lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
-            dataset = lugares_cercanos2        
+            dataset = lugares_cercanos2
+            
+            if "messages" not in st.session_state:
+                st.session_state.messages = []
+
+            # Agrega el contenido del DataFrame al historial de conversación solo una vez
+            if not st.session_state.get("data_added", False):
+                dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
+                st.session_state.messages.append({"role": "assistant", "content": dataset_message})
+                st.session_state.data_added = True
+            
         else:
             st.error('No se pudo geocodificar la dirección.')
     else:
@@ -79,14 +89,6 @@ st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 
 
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-    # Agrega el contenido del DataFrame al historial de conversación solo una vez
-    if not st.session_state.get("data_added", False):
-        dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
-        st.session_state.messages.append({"role": "assistant", "content": dataset_message})
-        st.session_state.data_added = True
 
 
 # initialize model
