@@ -4,7 +4,7 @@ import pandas as pd
 
 
 # Define la función colaborativa del filtro
-cosine_sim = pd.read_paquet('cosine.parquet', delimiter=',', header=None)
+cosine_sim = pd.read_paquet('cosine.parquet')
 df4_final = pd.read_parquet("df4_final.parquet")
 df4_final.reset_index(inplace=True)
 
