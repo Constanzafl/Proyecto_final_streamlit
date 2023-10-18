@@ -67,6 +67,7 @@ if st.button("Obtener Latitud y Longitud"):
             
             # Filtrar los lugares dentro del radio especificado
             lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
+            dataset = lugares_cercanos2        
         else:
             st.error('No se pudo geocodificar la dirección.')
     else:
@@ -79,7 +80,7 @@ if st.button("Obtener Latitud y Longitud"):
 
 st.title("Kanguro GPT!🤖")
 st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
-dataset = lugares_cercanos2
+
 
 
 if "messages" not in st.session_state:
