@@ -74,7 +74,6 @@ lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud_usuario
 
 st.title("Kanguro GPT!🤖")
 st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
-
 dataset = lugares_cercanos2
 
 
