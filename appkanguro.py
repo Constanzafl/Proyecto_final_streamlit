@@ -53,8 +53,7 @@ if st.button("Obtener Latitud y Longitud"):
 
 st.title("Kanguro GPT!🤖")
 
-dataset = pd.read_csv(r"C:\Users\flori\Desktop\Proyecto_final_streamlit\mini.csv") 
-
+dataset = pd.read_csv('mini.csv') 
 
 
 if "messages" not in st.session_state:
