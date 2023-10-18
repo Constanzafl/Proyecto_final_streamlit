@@ -54,21 +54,19 @@ if st.button("Obtener Latitud y Longitud"):
             st.error('No se pudo geocodificar la dirección.')
     else:
         st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
+# Función para filtrar lugares dentro del radio especificado
+def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
+    def calcular_distancia(row):
+        lugar_lat = row['latitude_x']
+        lugar_lon = row['longitude_x']
+        distancia = geodesic((lat_user, lon_user), (lugar_lat, lugar_lon)).kilometers
+        return distancia
+    resumen_dfcompleto['distancia'] = resumen_dfcompleto.apply(calcular_distancia, axis=1)
+    lugares_cercanos2 = resumen_dfcompleto[resumen_dfcompleto['distancia'] <= radio_km]
 
-if 'latitud' in locals() and 'longitud' in locals():
+    return lugares_cercanos2
 
-            # Función para filtrar lugares dentro del radio especificado
-            def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
-                def calcular_distancia(row):
-                    lugar_lat = row['latitude_x']
-                    lugar_lon = row['longitude_x']
-                    distancia = geodesic((lat_user, lon_user), (lugar_lat, lugar_lon)).kilometers
-                    return distancia
-
-                resumen_dfcompleto['distancia'] = resumen_dfcompleto.apply(calcular_distancia, axis=1)
-                lugares_cercanos2 = resumen_dfcompleto[resumen_dfcompleto['distancia'] <= radio_km]
-
-                return lugares_cercanos2
+if 'latitud' in locals() and 'longitud' in locals():  
 
             st.title("Kanguro GPT!🤖")
             st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
@@ -77,46 +75,46 @@ if 'latitud' in locals() and 'longitud' in locals():
             lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
             dataset = lugares_cercanos2
                         
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
-            # Agrega el contenido del DataFrame al historial de conversación solo una vez
-            if not st.session_state.get("data_added", False):
-                dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
-                st.session_state.messages.append({"role": "assistant", "content": dataset_message})
-                st.session_state.data_added = True
-                # initialize model
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+# Agrega el contenido del DataFrame al historial de conversación solo una vez
+if not st.session_state.get("data_added", False):
+    dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
+    st.session_state.messages.append({"role": "assistant", "content": dataset_message})
+    st.session_state.data_added = True
+    # initialize model
 
-            if "model" not in st.session_state:
-                            st.session_state.model = "gpt-3.5-turbo"
+if "model" not in st.session_state:
+                st.session_state.model = "gpt-3.5-turbo"
 
-            # user input
-            if user_prompt := st.chat_input("Tu consulta"):
-                # Agregar el mensaje del usuario
-                st.session_state.messages.append({"role": "user", "content": user_prompt})
-                with st.chat_message("user"):
-                    st.markdown(user_prompt)
+# user input
+if user_prompt := st.chat_input("Tu consulta"):
+    # Agregar el mensaje del usuario
+    st.session_state.messages.append({"role": "user", "content": user_prompt})
+    with st.chat_message("user"):
+        st.markdown(user_prompt)
 
-                # generate responses
-                with st.chat_message("assistant"):
-                    message_placeholder = st.empty()
-                    full_response = ""
+    # generate responses
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        full_response = ""
 
-                    for response in openai.ChatCompletion.create(
-                        model=st.session_state.model,
-                        messages=[
-                            {"role": m["role"], "content": m["content"]}
-                            for m in st.session_state.messages
-                        ],
-                        stream=True,
-                    ):
-                        full_response += response.choices[0].delta.get("content", "")
-                        if "role" not in response.choices[0].delta or response.choices[0].delta["role"] != "assistant":
-                            # No mostrar el mensaje del asistente si no tiene un rol o si el rol no es "assistant"
-                            message_placeholder.markdown(full_response + "▌")
+        for response in openai.ChatCompletion.create(
+            model=st.session_state.model,
+            messages=[
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.messages
+            ],
+            stream=True,
+        ):
+            full_response += response.choices[0].delta.get("content", "")
+            if "role" not in response.choices[0].delta or response.choices[0].delta["role"] != "assistant":
+                # No mostrar el mensaje del asistente si no tiene un rol o si el rol no es "assistant"
+                message_placeholder.markdown(full_response + "▌")
 
-                    if "role" in response.choices[0].delta and response.choices[0].delta["role"] == "assistant":
-                        # Mostrar el mensaje del asistente al final
-                        message_placeholder.markdown(full_response)
+        if "role" in response.choices[0].delta and response.choices[0].delta["role"] == "assistant":
+            # Mostrar el mensaje del asistente al final
+            message_placeholder.markdown(full_response)
 
 
 
