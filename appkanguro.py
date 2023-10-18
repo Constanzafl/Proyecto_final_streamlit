@@ -15,7 +15,7 @@ if st.checkbox('**Descubre la experiencia Kangaroo**'):
     st.write('Si viajaste a Florida y no sabes donde ir a comer, Kangaroo tiene la solución para vos')
 
 
-openai.api_key = st.secrets['OPENAI_API_KEY']
+#openai.api_key = st.secrets['OPENAI_API_KEY']
 
 
 st.title("Kanguro GPT!🤖")
