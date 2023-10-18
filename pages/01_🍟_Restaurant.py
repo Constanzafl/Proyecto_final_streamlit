@@ -22,11 +22,11 @@ st.title("Recomendaciones de Restaurantes")
 restaurant_name = st.selectbox("Selecciona un restaurante:", restaurants)
 if st.button("Obtener Recomendaciones"):
     if restaurant_name:
-        recommendations = get_recommendations(restaurant_name)
-        if recommendations:
+        recommendations_df = get_recommendations(restaurant_name)
+        if recommendations_df:
             st.write(f"Recomendaciones para {restaurant_name}:")
-            for recommendation in recommendations:
-                st.write(recommendation)
+            for recommendation_df in recommendations_df:
+                st.write(recommendation_df)
         else:
             st.write(f"No se encontraron recomendaciones para {restaurant_name}")
     else:
