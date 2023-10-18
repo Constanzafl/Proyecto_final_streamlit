@@ -2,4 +2,4 @@ streamlit
 openai
 python-dotenv
 requests
-geopyp 2.4.0
+geopyp
