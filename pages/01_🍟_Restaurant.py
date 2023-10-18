@@ -9,8 +9,8 @@ def get_recommendations(restaurant_name):
     restaurant_row = df_content[df_content['Restaurant_Name'] == restaurant_name]
 
     if not restaurant_row.empty:
-        recommendations = restaurant_row['Recommendations_content'].iloc[0]
-        recommendations_list = recommendations.split('\n')  # Cambia el separador según corresponda
+        recommendations = restaurant_row['Recommendations_content'].to_list()
+        recommendations_list = recommendations.split(',')# Cambia el separador según corresponda
         recommendations_df = pd.DataFrame({'Recommendations': recommendations_list})
         return recommendations_df
     else:
