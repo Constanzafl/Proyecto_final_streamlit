@@ -9,9 +9,8 @@ def get_recommendations(restaurant_name):
     restaurant_row = df_content[df_content['Restaurant_Name'] == restaurant_name]
 
     if not restaurant_row.empty:
-        recommendations = restaurant_row['Recommendations_content'].to_list()
-        recommendations_list = recommendations.split(',')# Cambia el separador según corresponda
-        recommendations_df = pd.DataFrame({'Recommendations': recommendations_list})
+        recommendations = restaurant_row['Recommendations_content'].iloc[0]# Cambia el separador según corresponda
+        recommendations_df = pd.DataFrame({'Recommendations': recommendations})
         return recommendations_df
     else:
         return pd.DataFrame()
@@ -21,10 +20,10 @@ st.title('Recomendaciones de Restaurantes')
 
 
 restaurant_name = st.selectbox("Selecciona un restaurante:", restaurants)
-recommendations_df = get_recommendations(restaurant_name)
+recommendations_df1 = get_recommendations(restaurant_name)
 
-if not recommendations_df.empty:
+if not recommendations_df1.empty:
     st.write('Recomendaciones para el restaurante:', restaurant_name)
-    st.write(recommendations_df)
+    st.write(recommendations_df1)
 else:
     st.write('No se encontraron recomendaciones para el restaurante especificado.')
