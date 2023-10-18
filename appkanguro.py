@@ -77,7 +77,39 @@ if st.button("Obtener Latitud y Longitud"):
                 dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
                 st.session_state.messages.append({"role": "assistant", "content": dataset_message})
                 st.session_state.data_added = True
-            
+            # initialize model
+            if "model" not in st.session_state:
+                st.session_state.model = "gpt-3.5-turbo"
+
+
+            # user input
+            if user_prompt := st.chat_input("Tu consulta"):
+                # Agregar el mensaje del usuario
+                st.session_state.messages.append({"role": "user", "content": user_prompt})
+                with st.chat_message("user"):
+                    st.markdown(user_prompt)
+
+                # generate responses
+                with st.chat_message("assistant"):
+                    message_placeholder = st.empty()
+                    full_response = ""
+
+                    for response in openai.ChatCompletion.create(
+                        model=st.session_state.model,
+                        messages=[
+                            {"role": m["role"], "content": m["content"]}
+                            for m in st.session_state.messages
+                        ],
+                        stream=True,
+                    ):
+                        full_response += response.choices[0].delta.get("content", "")
+                        if "role" not in response.choices[0].delta or response.choices[0].delta["role"] != "assistant":
+                            # No mostrar el mensaje del asistente si no tiene un rol o si el rol no es "assistant"
+                            message_placeholder.markdown(full_response + "▌")
+
+                    if "role" in response.choices[0].delta and response.choices[0].delta["role"] == "assistant":
+                        # Mostrar el mensaje del asistente al final
+                        message_placeholder.markdown(full_response)
         else:
             st.error('No se pudo geocodificar la dirección.')
     else:
@@ -91,39 +123,7 @@ st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 
 
 
-# initialize model
-if "model" not in st.session_state:
-    st.session_state.model = "gpt-3.5-turbo"
 
-
-# user input
-if user_prompt := st.chat_input("Tu consulta"):
-    # Agregar el mensaje del usuario
-    st.session_state.messages.append({"role": "user", "content": user_prompt})
-    with st.chat_message("user"):
-        st.markdown(user_prompt)
-
-    # generate responses
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
-
-        for response in openai.ChatCompletion.create(
-            model=st.session_state.model,
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        ):
-            full_response += response.choices[0].delta.get("content", "")
-            if "role" not in response.choices[0].delta or response.choices[0].delta["role"] != "assistant":
-                # No mostrar el mensaje del asistente si no tiene un rol o si el rol no es "assistant"
-                message_placeholder.markdown(full_response + "▌")
-
-        if "role" in response.choices[0].delta and response.choices[0].delta["role"] == "assistant":
-            # Mostrar el mensaje del asistente al final
-            message_placeholder.markdown(full_response)
 
 
 
