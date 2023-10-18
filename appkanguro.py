@@ -15,11 +15,11 @@ if st.checkbox('**Descubre la experiencia Kangaroo**'):
     st.write('Si viajaste a Florida y no sabes donde ir a comer, Kangaroo tiene la solución para vos')
 
 
-#openai.api_key = st.secrets['OPENAI_API_KEY']
+openai.api_key = st.secrets['OPENAI_API_KEY']
 
-#api_key= st.secrets['API_KEY']
+api_key= st.secrets['API_KEY']
 
-api_key= 'API_KEY'
+
 
 # Crear una función para obtener la latitud y longitud
 def obtener_latitud_longitud(direccion):
