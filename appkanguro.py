@@ -3,13 +3,12 @@ import pandas as pd
 import openai
 import os
 import requests
+from geopy.distance import geodesic
 
 st.title('KANGAROO')
-st.markdown('*****')
-st.markdown('Tu APP web de Recomendación de Restaurants')
 
 logo_path= 'logo.jpeg'
-st.image(logo_path, width=300)
+st.image(logo_path, width=400)
 
 
 if st.checkbox('**Descubre la experiencia Kangaroo**'):
@@ -35,9 +34,9 @@ def obtener_latitud_longitud(direccion):
         return None
 
 # Interfaz de usuario con Streamlit
-st.title("Geocodificación de Direcciones")
+st.title("¡Te damos la bienvenida a nuestra APP interactiva!")
 
-direccion = st.text_input("Ingresa tu dirección:")
+direccion = st.text_input("Primero ingresa tu dirección:")
 
 if st.button("Obtener Latitud y Longitud"):
     if direccion:
@@ -50,10 +49,33 @@ if st.button("Obtener Latitud y Longitud"):
     else:
         st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
 
+latitud_usuario = latitud
+longitud_usuario = longitud
+# Definir el radio de 2 km
+radio_km = 2
+resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
+
+# Función para filtrar lugares dentro del radio especificado
+def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
+    def calcular_distancia(row):
+        lugar_lat = row['latitude_x']
+        lugar_lon = row['longitude_x']
+        distancia = geodesic((lat_user, lon_user), (lugar_lat, lugar_lon)).kilometers
+        return distancia
+
+    resumen_dfcompleto['distancia'] = resumen_dfcompleto.apply(calcular_distancia, axis=1)
+    lugares_cercanos2 = resumen_dfcompleto[resumen_dfcompleto['distancia'] <= radio_km]
+
+    return lugares_cercanos2
+
+# Filtrar los lugares dentro del radio especificado
+lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud_usuario, longitud_usuario, radio_km)
+
 
 st.title("Kanguro GPT!🤖")
+st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 
-dataset = pd.read_csv('mini.csv') 
+dataset = lugares_cercanos2
 
 
 if "messages" not in st.session_state:
