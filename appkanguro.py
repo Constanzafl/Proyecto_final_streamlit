@@ -33,27 +33,7 @@ def obtener_latitud_longitud(direccion):
         return latitud, longitud
     else:
         return None
-
-# Interfaz de usuario con Streamlit
-st.title("¡Te damos la bienvenida a nuestra APP interactiva!")
-
-direccion = st.text_input("Primero ingresa tu dirección:")
-
-if st.button("Obtener Latitud y Longitud"):
-    if direccion:
-        resultado = obtener_latitud_longitud(direccion)
-        if resultado:
-            latitud, longitud = resultado
-            st.write(f'Latitud: {latitud}, Longitud: {longitud}')
-        else:
-            st.error('No se pudo geocodificar la dirección.')
-    else:
-        st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
-
-# Definir el radio de 2 km
-radio_km = 2
-resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
-
+    
 # Función para filtrar lugares dentro del radio especificado
 def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
     def calcular_distancia(row):
@@ -67,8 +47,34 @@ def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
 
     return lugares_cercanos2
 
-# Filtrar los lugares dentro del radio especificado
-lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
+# Definir el radio de 2 km
+radio_km = 2
+resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
+
+
+
+# Interfaz de usuario con Streamlit
+st.title("¡Te damos la bienvenida a nuestra APP interactiva!")
+
+direccion = st.text_input("Primero ingresa tu dirección:")
+
+if st.button("Obtener Latitud y Longitud"):
+    if direccion:
+        resultado = obtener_latitud_longitud(direccion)
+        if resultado:
+            latitud, longitud = resultado
+            st.write(f'Latitud: {latitud}, Longitud: {longitud}')
+            
+            # Filtrar los lugares dentro del radio especificado
+            lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
+        else:
+            st.error('No se pudo geocodificar la dirección.')
+    else:
+        st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
+
+
+
+
 
 
 st.title("Kanguro GPT!🤖")
