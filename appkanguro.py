@@ -50,8 +50,6 @@ if st.button("Obtener Latitud y Longitud"):
     else:
         st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
 
-latitud_usuario = resultado[0]
-longitud_usuario = resultado[1]
 # Definir el radio de 2 km
 radio_km = 2
 resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
@@ -70,7 +68,7 @@ def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
     return lugares_cercanos2
 
 # Filtrar los lugares dentro del radio especificado
-lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud_usuario, longitud_usuario, radio_km)
+lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
 
 
 st.title("Kanguro GPT!🤖")
