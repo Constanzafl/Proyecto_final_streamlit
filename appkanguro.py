@@ -19,7 +19,8 @@ openai.api_key = st.secrets['OPENAI_API_KEY']
 
 api_key= st.secrets['API_KEY']
 
-
+latitud=0
+longitud=0
 
 # Crear una función para obtener la latitud y longitud
 def obtener_latitud_longitud(direccion):
@@ -34,6 +35,28 @@ def obtener_latitud_longitud(direccion):
     else:
         return None
     
+
+# Definir el radio de 2 km
+radio_km = 2
+resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
+
+# Interfaz de usuario con Streamlit
+st.title("¡Te damos la bienvenida a nuestra APP interactiva!")
+
+direccion = st.text_input("Primero ingresa tu dirección:")
+
+if st.button("Obtener Latitud y Longitud"):
+    if direccion:
+        resultado = obtener_latitud_longitud(direccion)
+        if resultado:
+            latitud, longitud = resultado
+            st.write(f'Latitud: {latitud}, Longitud: {longitud}')   
+        else:
+            st.error('No se pudo geocodificar la dirección.')
+    else:
+        st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
+
+
 # Función para filtrar lugares dentro del radio especificado
 def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
     def calcular_distancia(row):
@@ -47,47 +70,21 @@ def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
 
     return lugares_cercanos2
 
-# Definir el radio de 2 km
-radio_km = 2
-resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
-
-
-
-# Interfaz de usuario con Streamlit
-st.title("¡Te damos la bienvenida a nuestra APP interactiva!")
-
-direccion = st.text_input("Primero ingresa tu dirección:")
-
-if st.button("Obtener Latitud y Longitud"):
-    if direccion:
-        resultado = obtener_latitud_longitud(direccion)
-        if resultado:
-            latitud, longitud = resultado
-            st.write(f'Latitud: {latitud}, Longitud: {longitud}')
-            
-            # Filtrar los lugares dentro del radio especificado
-            lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
-            dataset = lugares_cercanos2
-            
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
-            
-        else:
-            st.error('No se pudo geocodificar la dirección.')
-    else:
-        st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
-
-
 st.title("Kanguro GPT!🤖")
 st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 
-if dataset :
+# Filtrar los lugares dentro del radio especificado
+lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
+dataset = lugares_cercanos2
+            
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 # Agrega el contenido del DataFrame al historial de conversación solo una vez
-    if not st.session_state.get("data_added", False):
-        dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
-        st.session_state.messages.append({"role": "assistant", "content": dataset_message})
-        st.session_state.data_added = True
-        # initialize model
+if not st.session_state.get("data_added", False):
+    dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
+    st.session_state.messages.append({"role": "assistant", "content": dataset_message})
+    st.session_state.data_added = True
+    # initialize model
 
 if "model" not in st.session_state:
                 st.session_state.model = "gpt-3.5-turbo"
