@@ -19,8 +19,7 @@ openai.api_key = st.secrets['OPENAI_API_KEY']
 
 api_key= st.secrets['API_KEY']
 
-latitud=0
-longitud=0
+
 
 # Crear una función para obtener la latitud y longitud
 def obtener_latitud_longitud(direccion):
@@ -56,6 +55,8 @@ if st.button("Obtener Latitud y Longitud"):
     else:
         st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
 
+latitud=latitud
+longitud=longitud
 
 # Función para filtrar lugares dentro del radio especificado
 def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
