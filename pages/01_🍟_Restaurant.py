@@ -2,38 +2,33 @@
 import streamlit as st
 import pandas as pd
 
+df_content = pd.read_csv('df_content.csv')
 
-# Define la función colaborativa del filtro
-cosine_sim = pd.read_parquet('cosine.parquet')
-df4_final = pd.read_parquet("df4_final.parquet")
-df4_final.reset_index(inplace=True)
+# Definir una función para obtener recomendaciones
+def get_recommendations(restaurant_name):
+    # Encuentra la fila donde el nombre del restaurante coincida con la entrada
+    restaurant_row = df_content[df_content['Restaurant_Name'] == restaurant_name]
 
-
-# Definir tu función content_based_recommendations
-def content_based_recommendations(restaurant, cosine_sim, df):
-    recommended_restaurants = []
-    idx = df[df['name_y'] == restaurant].index[0]
+    # Obtén las recomendaciones del restaurante
+    recommendations = restaurant_row['Recommendations_content'].to_list()
     
-    top_10_indexes = cosine_sim[idx].argsort()[-10:-1]
-    recommended_restaurants = df.iloc[top_10_indexes]['name_y'].tolist()
-        
-    return recommended_restaurants
+    return recommendations
 
-restaurants = df4_final.name_y
-# Crear la aplicación de Streamlit
-st.title("Sistema de Recomendación de Restaurantes")
-st.markdown('Recomienda restaurantes a partir de poner el nombre de un Restaurant')
-
-# Input para seleccionar un restaurante
-selected_restaurant = st.selectbox("Selecciona un restaurante:", restaurants)
-
+restaurants = df_content.Restaurant_Name
+# Interfaz de usuario de Streamlit
+st.title("Recomendaciones de Restaurantes")
+restaurant_name = st.selectbox("Selecciona un restaurante:", restaurants)
 if st.button("Obtener Recomendaciones"):
-    recommended_restaurants = content_based_recommendations(selected_restaurant, cosine_sim, df4_final)
-    st.subheader(f"Recomendaciones basadas en contenido para {selected_restaurant}:")
-    
+    if restaurant_name:
+        recommendations = get_recommendations(restaurant_name)
+        if recommendations:
+            st.write(f"Recomendaciones para {restaurant_name}:")
+            for recommendation in recommendations:
+                st.write(recommendation)
+        else:
+            st.write(f"No se encontraron recomendaciones para {restaurant_name}")
+    else:
+        st.write("Por favor, ingresa el nombre del restaurante.")
 
-    # Formatea la lista de restaurantes recomendados en Markdown
-    formatted_recommendations = "\n".join([f"{i+1}. {restaurant}" for i, restaurant in enumerate(recommended_restaurants)])
-    
-    st.markdown(formatted_recommendations)
+
 
