@@ -9,11 +9,18 @@ def get_recommendations(restaurant_name):
     restaurant_row = df_content[df_content['Restaurant_Name'] == restaurant_name]
 
     if not restaurant_row.empty:
-        recommendations = restaurant_row['Recommendations_content'].iloc[0]# Cambia el separador según corresponda
-        recommendations_df = pd.DataFrame({'Recommendations': recommendations}, index=False)
+        recommendations = restaurant_row['Recommendations_content'].iloc[0]
+        # Dividir las recomendaciones por líneas o cualquier otro separador
+        recommendations_list = recommendations.split('\n')  # Cambia el separador según corresponda
+
+        # Crear una lista de diccionarios
+        recommendations_dict_list = [{'Recommendations': rec} for rec in recommendations_list]
+
+        recommendations_df = pd.DataFrame(recommendations_dict_list)
         return recommendations_df
     else:
         return pd.DataFrame()
+       
 restaurants = df_content.Restaurant_Name
 
 st.title('Recomendaciones de Restaurantes')
