@@ -80,12 +80,6 @@ if 'latitud' in locals() and 'longitud' in locals():
                         
 if "messages" not in st.session_state:
     st.session_state.messages = []
-# Agrega el contenido del DataFrame al historial de conversación solo una vez
-'''if not st.session_state.get("data_added", False):
-    dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
-    st.session_state.messages.append({"role": "assistant", "content": dataset_message})
-    st.session_state.data_added = True'''
-    # initialize model
 
 if "model" not in st.session_state:
                 st.session_state.model = "gpt-3.5-turbo"
