@@ -1,24 +1,21 @@
 import streamlit as st
 import pandas as pd
-from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
 import pydeck as pdk
+import requests
 
-# Define el usuario agente para Geopy
-geolocator = Nominatim(user_agent="mi_app_geopy")
+api_key= st.secrets['API_KEY']
 
 ruta2 = "df_only_ubication.csv"
 df = pd.read_csv(ruta2)
+
+df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
+df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
 
 mejores_por_tendencia = "predicciontendencia.csv"
 df_tendencia = pd.read_csv(mejores_por_tendencia)
 df_tendencia_unico = df_tendencia
 
-# Asegurémonos de que las columnas sean números
-df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
-df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
-
-# Crea un DataFrame con restaurantes y sus coordenadas
 data = df
 data = data.drop_duplicates(subset='business_name', keep='first')
 restaurantes_df = pd.DataFrame(data)
@@ -26,21 +23,36 @@ restaurantes_df = pd.DataFrame(data)
 # Título de la aplicación
 st.title('Geocodificación y búsqueda de restaurantes cercanos')
 
-# Entrada de usuario para ingresar una dirección
-address = st.text_input('Ingrese una dirección:')
-
 # Variables de estado para rastrear si se ha realizado el primer cálculo y la dirección ingresada
 primer_calculo = False
 address_inicial = ""
+    
+api_key= st.secrets['API_KEY']
 
+# Crear una función para obtener la latitud y longitud
+def obtener_latitud_longitud(direccion):
+    url = f'https://maps.googleapis.com/maps/api/geocode/json?address={direccion}&key={api_key}'
+    response = requests.get(url)
+    data = response.json()
+    
+    if data['status'] == 'OK':
+        latitud = data['results'][0]['geometry']['location']['lat']
+        longitud = data['results'][0]['geometry']['location']['lng']
+        return latitud, longitud
+    else:
+        return None
+    
+direccion = st.text_input("Primero ingresa tu dirección:")
 
-# Botón para geocodificar la dirección
-if st.button('Geocodificar'):
-    address_inicial = address
-    if address:
-        location = geolocator.geocode(address)
-        if location:
-            lat_usuario, lon_usuario = location.latitude, location.longitude
+if st.button("Obtener Latitud y Longitud"):
+
+    if direccion:
+        resultado = obtener_latitud_longitud(direccion)
+        if resultado:
+            latitud, longitud = resultado
+            st.write(f'Latitud: {latitud}, Longitud: {longitud}')   
+
+            lat_usuario, lon_usuario = latitud, longitud
 
             # Calcular la distancia entre la ubicación del usuario y todos los restaurantes
             restaurantes_df['Distancia'] = restaurantes_df.apply(lambda row: geodesic((lat_usuario, lon_usuario), (row['latitude'], row['longitude'])).meters, axis=1)
@@ -129,9 +141,7 @@ if st.button('Geocodificar'):
                 st.write(":large_green_circle: Restaurantes cercanos")
                 st.write(":red_circle: Restaurante recomendado")
 
-            # Llama a la función para mostrar la leyenda
             mostrar_leyenda()
-
 
             lat_usuario = usuario_df["latitude"].values[0]
             lon_usuario = usuario_df["longitude"].values[0]
@@ -175,4 +185,3 @@ if st.button('Geocodificar'):
             st.error('No se encontraron coordenadas para la dirección ingresada.')
     else:
         st.warning('Ingrese una dirección válida.')
-
