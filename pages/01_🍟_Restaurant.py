@@ -20,7 +20,10 @@ def get_recommendations(restaurant_name):
        
 
 
-st.title('Recomendaciones de Restaurantes')
+st.title('Recomendaciones de Restaurantes por similitud')
+
+logo_path= 'logo.jpeg'
+st.image(logo_path, width=200)
 
 restaurants = df_content.Restaurant_Name
 restaurant_name = st.selectbox("Selecciona un restaurante:", restaurants)
@@ -28,7 +31,7 @@ restaurant_name = st.selectbox("Selecciona un restaurante:", restaurants)
 recommendations_df = get_recommendations(restaurant_name)
 
 if not recommendations_df.empty:
-    st.write('Recomendaciones para el restaurante:', restaurant_name)
+    st.write('Estos son los Restaurantes con mayor similitud a tu Restaurant elegido:', restaurant_name)
     st.write(recommendations_df)
 else:
     st.write('No se encontraron recomendaciones para el restaurante especificado.')

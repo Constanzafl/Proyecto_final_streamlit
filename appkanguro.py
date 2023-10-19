@@ -5,14 +5,13 @@ import os
 import requests
 from geopy.distance import geodesic
 
-st.title('KANGAROO')
+st.title('🦘Kangaroo: la APP WEB de Recomendacion de Restaurantes en Florida🦘')
 
 logo_path= 'logo.jpeg'
-st.image(logo_path, width=400)
+st.image(logo_path, width=200)
 
 
-if st.checkbox('**Descubre la experiencia Kangaroo**'):
-    st.write('Si viajaste a Florida y no sabes donde ir a comer, Kangaroo tiene la solución para vos')
+st.write('🏖️Si estás en Florida y no sabes donde ir a comer, Kangaroo tiene la solución para vos🏖️')
 
 
 openai.api_key = st.secrets['OPENAI_API_KEY']
@@ -44,7 +43,7 @@ st.title("¡Te damos la bienvenida a nuestra APP interactiva!")
 
 direccion = st.text_input("Primero ingresa tu dirección:")
 
-if st.button("Obtener Latitud y Longitud"):
+if st.button("Click Aquí"):
     if direccion:
         resultado = obtener_latitud_longitud(direccion)
         if resultado:

@@ -21,8 +21,10 @@ data = data.drop_duplicates(subset='business_name', keep='first')
 restaurantes_df = pd.DataFrame(data)
 
 # Título de la aplicación
-st.title('Geocodificación y búsqueda de restaurantes cercanos')
+st.title('🧐¡Te facilitamos la búsqueda de los Restaurantes mas cercanos!🧐')
 
+logo_path= 'logo.jpeg'
+st.image(logo_path, width=200)
 # Variables de estado para rastrear si se ha realizado el primer cálculo y la dirección ingresada
 primer_calculo = False
 address_inicial = ""
@@ -44,7 +46,7 @@ def obtener_latitud_longitud(direccion):
     
 direccion = st.text_input("Primero ingresa tu dirección:")
 
-if st.button("Obtener Latitud y Longitud"):
+if st.button("Click Aquí"):
 
     if direccion:
         resultado = obtener_latitud_longitud(direccion)
@@ -73,7 +75,7 @@ if st.button("Obtener Latitud y Longitud"):
             })
 
             # Crear el mapa
-            st.title("Ubicacion de los Restaurantes")
+            st.title("Ubicación de los Restaurantes")
 
             view_state = pdk.ViewState(
                 latitude=lat_usuario,
@@ -177,8 +179,8 @@ if st.button("Obtener Latitud y Longitud"):
 
             st.header("")
             st.header("")
-            st.header("Restaurantes Único")
-            st.write("(tendencia positiva en opiniones!)")
+            st.header("Lo que se viene:")
+            st.write("Aqui podras ver cual Restaurant tiene una tendencia positiva")
             st.write(df_tendencia_unico_googlemaps.to_html(escape=False, index=False), unsafe_allow_html=True)
 
         else:
