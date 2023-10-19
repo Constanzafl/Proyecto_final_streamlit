@@ -1,9 +1,9 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
-import openai
-import os
-import requests
 from geopy.distance import geodesic
+import pydeck as pdk
+import requests
+
 
 st.title('🦘Kangaroo: la APP WEB de Recomendacion de Restaurantes en Florida🦘')
 
@@ -14,11 +14,31 @@ st.image(logo_path, width=200)
 st.write('🏖️Si estás en Florida y no sabes donde ir a comer, Kangaroo tiene la solución para vos🏖️')
 
 
-openai.api_key = st.secrets['OPENAI_API_KEY']
-
 api_key= st.secrets['API_KEY']
 
+ruta2 = "df_only_ubication.csv"
+df = pd.read_csv(ruta2)
 
+df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
+df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
+
+mejores_por_tendencia = "predicciontendencia.csv"
+df_tendencia = pd.read_csv(mejores_por_tendencia)
+df_tendencia_unico = df_tendencia
+
+data = df
+data = data.drop_duplicates(subset='business_name', keep='first')
+restaurantes_df = pd.DataFrame(data)
+
+# Título de la aplicación
+st.title('🧐¡Para empezar te facilitamos la búsqueda de los Restaurantes mas cercanos!🧐')
+
+
+# Variables de estado para rastrear si se ha realizado el primer cálculo y la dirección ingresada
+primer_calculo = False
+address_inicial = ""
+    
+api_key= st.secrets['API_KEY']
 
 # Crear una función para obtener la latitud y longitud
 def obtener_latitud_longitud(direccion):
@@ -33,87 +53,149 @@ def obtener_latitud_longitud(direccion):
     else:
         return None
     
-
-# Definir el radio de 2 km
-radio_km = 2
-resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
-
-# Interfaz de usuario con Streamlit
-st.title("¡Te damos la bienvenida a nuestra APP interactiva!")
-
 direccion = st.text_input("Primero ingresa tu dirección:")
 
 if st.button("Click Aquí"):
+
     if direccion:
         resultado = obtener_latitud_longitud(direccion)
         if resultado:
             latitud, longitud = resultado
             st.write(f'Latitud: {latitud}, Longitud: {longitud}')   
+
+            lat_usuario, lon_usuario = latitud, longitud
+
+            # Calcular la distancia entre la ubicación del usuario y todos los restaurantes
+            restaurantes_df['Distancia'] = restaurantes_df.apply(lambda row: geodesic((lat_usuario, lon_usuario), (row['latitude'], row['longitude'])).meters, axis=1)
+
+            # Ordenar por distancia y seleccionar los 5 más cercanos
+            restaurantes_cercanos = restaurantes_df.sort_values(by='Distancia').head(5)
+
+            # Lo mismo, pero con el de mejor tendencia
+            df_tendencia_unico['Distancia'] = df_tendencia_unico.apply(lambda row: geodesic((lat_usuario, lon_usuario), (row['latitude'], row['longitude'])).meters, axis=1)
+
+            # Ordenar por distancia y seleccionar los 5 más cercanos
+            tendencia_unico = df_tendencia_unico.sort_values(by='Distancia').head(1)
+
+            usuario_df = pd.DataFrame({
+                "latitude": [lat_usuario],
+                "longitude": [lon_usuario],
+                "business_name":["Mi Ubicacion"]
+            })
+
+            # Crear el mapa
+            st.title("Ubicación de los Restaurantes")
+
+            view_state = pdk.ViewState(
+                latitude=lat_usuario,
+                longitude=lon_usuario,
+                zoom=11,
+            )
+
+            # Capa user
+            layer_user = pdk.Layer(
+                type="ScatterplotLayer",
+                data = usuario_df,
+                get_position=["longitude", "latitude"],
+                get_radius=30,
+                get_fill_color=[0, 0, 255], 
+                pickable=True,
+                auto_highlight=True,
+    
+            )
+
+            # Capa para los restaurantes
+            layer_restaurantes = pdk.Layer(
+                type="ScatterplotLayer",
+                data=restaurantes_cercanos,
+                get_position=["longitude", "latitude"],
+                get_radius=30,
+                get_fill_color=[0, 255, 0],  
+                pickable=True,
+                auto_highlight=True, 
+            )
+
+
+            #Carga el rest tendencia unico
+            layer_restaurante_unico = pdk.Layer(
+                type="ScatterplotLayer",
+                data=tendencia_unico,
+                get_position=["longitude", "latitude"],
+                get_radius=30,
+                get_fill_color=[255, 0, 0],  
+                pickable=True,
+                auto_highlight=True,
+            )
+
+            tooltip = {
+                "html": "Restaurant: <b>{business_name}</b>",
+                "style": {"background": "grey", "color": "white", "font-family": '"Helvetica Neue", Arial', "z-index": "10000"},
+            }
+            # Mostrar el mapa
+
+            # Crear el mapa PyDeck principal y agregar la capa de restaurantes
+            mapa_pydeck = pdk.Deck(
+                layers=[layer_restaurantes, layer_user, layer_restaurante_unico],
+                initial_view_state=view_state,
+                tooltip=tooltip,
+                    views=[
+                        pdk.View(type="MapView", controller=True, legend="Restaurantes Cercanos")
+                    ]
+            )
+
+            # Mostrar el mapa
+            st.pydeck_chart(mapa_pydeck)
+
+            def mostrar_leyenda():
+                st.markdown("#### Leyenda")
+                st.write(":large_blue_circle: Tu ubicación")
+                st.write(":large_green_circle: Restaurantes cercanos")
+                st.write(":red_circle: Restaurante recomendado")
+
+            mostrar_leyenda()
+
+            lat_usuario = usuario_df["latitude"].values[0]
+            lon_usuario = usuario_df["longitude"].values[0]
+
+            # Función para calcular la distancia y generar el enlace de Google Maps
+            def calculate_distance_and_generate_link(row):
+                lat_restaurante = row['latitude']
+                lon_restaurante = row['longitude']
+                enlace = f"https://www.google.com/maps/dir/{lat_usuario},{lon_usuario}/{lat_restaurante},{lon_restaurante}"
+                return enlace
+
+            restaurantes_cercanos['Enlace a Google Maps'] = restaurantes_cercanos.apply(calculate_distance_and_generate_link, axis=1)
+
+            enlaces_html = restaurantes_cercanos['Enlace a Google Maps'].apply(lambda enlace: f'<a target="_blank" href="{enlace}">Ver en Google Maps</a>')
+
+            restaurantes_cercanos['Enlace HTML'] = enlaces_html
+
+            restaurantes_cercanos_googlemaps = restaurantes_cercanos.loc[:,["business_name", "Distancia", "Enlace HTML"]]
+            restaurantes_cercanos_googlemaps = restaurantes_cercanos_googlemaps.rename(columns={'business_name': 'Nombre Restaurant', 'Distancia':'Distancia en Metros','Enlace HTML':'Indicaciones'})
+
+            st.header("Restaurantes Cercanos")
+            st.write(restaurantes_cercanos_googlemaps.to_html(escape=False, index=False), unsafe_allow_html=True)
+
+            #codigo para rest unico
+            tendencia_unico['Enlace a Google Maps'] = tendencia_unico.apply(calculate_distance_and_generate_link, axis=1)
+
+            enlaces_html_unico = tendencia_unico['Enlace a Google Maps'].apply(lambda enlace: f'<a target="_blank" href="{enlace}">Ver en Google Maps</a>')
+
+            tendencia_unico['Enlace HTML'] = enlaces_html_unico
+
+            df_tendencia_unico_googlemaps = tendencia_unico.loc[:,["business_name", "Distancia", "Enlace HTML"]]
+            df_tendencia_unico_googlemaps = df_tendencia_unico_googlemaps.rename(columns={'business_name': 'Nombre Restaurant', 'Distancia':'Distancia en Metros','Enlace HTML':'Indicaciones'})
+
+            st.header("")
+            st.header("")
+            st.header("Lo que se viene:")
+            st.write("Aqui podras ver cual Restaurant tiene una tendencia positiva")
+            st.write(df_tendencia_unico_googlemaps.to_html(escape=False, index=False), unsafe_allow_html=True)
+
         else:
-            st.error('No se pudo geocodificar la dirección.')
+            st.error('No se encontraron coordenadas para la dirección ingresada.')
     else:
-        st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
-# Función para filtrar lugares dentro del radio especificado
-def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
-    def calcular_distancia(row):
-        lugar_lat = row['latitude_x']
-        lugar_lon = row['longitude_x']
-        distancia = geodesic((lat_user, lon_user), (lugar_lat, lugar_lon)).kilometers
-        return distancia
-    resumen_dfcompleto['distancia'] = resumen_dfcompleto.apply(calcular_distancia, axis=1)
-    lugares_cercanos2 = resumen_dfcompleto[resumen_dfcompleto['distancia'] <= radio_km]
-
-    return lugares_cercanos2
-
-if 'latitud' in locals() and 'longitud' in locals():  
-
-            st.title("Kanguro GPT!🤖")
-            st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
-
-            # Filtrar los lugares dentro del radio especificado
-            lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
-            dataset = lugares_cercanos2
-            
-            dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
-            st.session_state.messages.append({"role": "assistant", "content": dataset_message})
-                        
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "model" not in st.session_state:
-                st.session_state.model = "gpt-3.5-turbo"
-
-# user input
-if user_prompt := st.chat_input("Tu consulta"):
-    # Agregar el mensaje del usuario
-    st.session_state.messages.append({"role": "user", "content": user_prompt})
-    with st.chat_message("user"):
-        st.markdown(user_prompt)
-
-    # generate responses
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
-
-        for response in openai.ChatCompletion.create(
-            model=st.session_state.model,
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        ):
-            full_response += response.choices[0].delta.get("content", "")
-            if "role" not in response.choices[0].delta or response.choices[0].delta["role"] != "assistant":
-                # No mostrar el mensaje del asistente si no tiene un rol o si el rol no es "assistant"
-                message_placeholder.markdown(full_response + "▌")
-
-        if "role" in response.choices[0].delta and response.choices[0].delta["role"] == "assistant":
-            # Mostrar el mensaje del asistente al final
-            message_placeholder.markdown(full_response)
-
-
-
+        st.warning('Ingrese una dirección válida.')
 
 
 
