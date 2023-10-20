@@ -26,7 +26,7 @@ def obtener_latitud_longitud(direccion):
     
 
 # Definir el radio de 2 km
-radio_km = 1
+radio_km = 2
 resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
 
 # Interfaz de usuario con Streamlit
