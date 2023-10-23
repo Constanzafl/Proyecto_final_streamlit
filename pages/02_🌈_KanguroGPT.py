@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import openai
 import requests
-from kanguro.Lib import tiktoken
+import tiktoken
 from geopy.distance import geodesic
 from utils.chatfuncions import get_response, check_memory_tokens, num_tokens, system_role
 

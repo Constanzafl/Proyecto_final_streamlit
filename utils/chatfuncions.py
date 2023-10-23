@@ -1,5 +1,5 @@
 import streamlit as st
-import tiktoken
+from kanguro.Lib import tiktoken
 import openai
 
 
