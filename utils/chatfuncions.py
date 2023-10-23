@@ -1,5 +1,5 @@
 import streamlit as st
-import tiktoken
+#import tiktoken
 import openai
 
 
@@ -20,10 +20,10 @@ system = """ Eres un asistente especializado en recomendacion de restaurantes en
 system_role = [{"role": "system", "content":system}]
 
 # Para calcular el numero de tokens
-def num_tokens(text: str, model: str = GPT_MODEL) -> int:
-    """Return the number of tokens in a string."""
-    encoding = tiktoken.encoding_for_model(model)
-    return len(encoding.encode(text))
+#def num_tokens(text: str, model: str = GPT_MODEL) -> int:
+    #"""Return the number of tokens in a string."""
+    #encoding = tiktoken.encoding_for_model(model)
+    #return len(encoding.encode(text))
 
 def get_response(memory:list):
     response = openai.ChatCompletion.create(

@@ -4,4 +4,3 @@ python-dotenv
 requests
 geopy
 pydeck
-tiktoken
