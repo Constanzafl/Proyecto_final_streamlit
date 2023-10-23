@@ -1,9 +1,9 @@
 import streamlit as st 
 import pandas as pd
 import openai
-import os
 import requests
 from geopy.distance import geodesic
+from utils.chatfuncions import get_response, check_memory_tokens, num_tokens, system_role
 
 st.title("¡CHARLEMOS!")
 
@@ -15,6 +15,8 @@ st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 openai.api_key = st.secrets['OPENAI_API_KEY']
 
 api_key= st.secrets['API_KEY']
+
+
 
 resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
 
@@ -88,24 +90,37 @@ if user_prompt := st.chat_input("Tu consulta"):
     # generate responses
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        full_response = ""
+        
+        
+         # Consultamos al chat
+        full_response = get_response(st.session_state.messages)
 
-        for response in openai.ChatCompletion.create(
-            model=st.session_state.model,
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        ):
-            full_response += response.choices[0].delta.get("content", "")
-            if "role" not in response.choices[0].delta or response.choices[0].delta["role"] != "assistant":
+        message_placeholder.markdown(full_response)
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
+    # chequeamos la cantidad de tokens en la memoria
+    st.session_state.messages = check_memory_tokens(st.session_state.messages)
+        
+        
+        
+        
+        #full_response = ""
+
+        #for response in openai.ChatCompletion.create(
+            #model=st.session_state.model,
+            #messages=[
+                #{"role": m["role"], "content": m["content"]}
+                #for m in st.session_state.messages
+            #],
+            #stream=True,
+        #):
+            #full_response += response.choices[0].delta.get("content", "")
+            #if "role" not in response.choices[0].delta or response.choices[0].delta["role"] != "assistant":
                 # No mostrar el mensaje del asistente si no tiene un rol o si el rol no es "assistant"
-                message_placeholder.markdown(full_response + "▌")
+                #message_placeholder.markdown(full_response + "▌")
 
-        if "role" in response.choices[0].delta and response.choices[0].delta["role"] == "assistant":
+        #if "role" in response.choices[0].delta and response.choices[0].delta["role"] == "assistant":
             # Mostrar el mensaje del asistente al final
-            message_placeholder.markdown(full_response)
+            #message_placeholder.markdown(full_response)
 
 
 
