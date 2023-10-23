@@ -5,13 +5,22 @@ import os
 import requests
 from geopy.distance import geodesic
 
+st.title("¡CHARLEMOS!")
+
+logo_path= 'logo.jpeg'
+st.image(logo_path, width=200)
+st.title("Kanguro GPT!🤖")
+st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 
 openai.api_key = st.secrets['OPENAI_API_KEY']
 
 api_key= st.secrets['API_KEY']
 
+resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
 
-# Crear una función para obtener la latitud y longitud
+# Inicializa st.session_state con una estructura de datos que contenga las conversaciones
+
+direccion = st.text_input("Ingresa tu dirección:")
 def obtener_latitud_longitud(direccion):
     url = f'https://maps.googleapis.com/maps/api/geocode/json?address={direccion}&key={api_key}'
     response = requests.get(url)
@@ -23,32 +32,18 @@ def obtener_latitud_longitud(direccion):
         return latitud, longitud
     else:
         return None
-    
 
-# Definir el radio de 2 km
-radio_km = 2
-resumen_dfcompleto= pd.read_csv('ResumenDFparaCHATopenai.csv')
-
-# Interfaz de usuario con Streamlit
-st.title("¡CHARLEMOS!")
-
-logo_path= 'logo.jpeg'
-st.image(logo_path, width=200)
-
-direccion = st.text_input("Ingresa tu dirección:")
-
-st.markdown("Luego obtenemos las coordenadas para guiar a Kanguro GPT")
-
-if st.button("Obtener coordenadas"):
-    if direccion:
+if direccion:
         resultado = obtener_latitud_longitud(direccion)
         if resultado:
             latitud, longitud = resultado
-            st.write(f'Latitud: {latitud}, Longitud: {longitud}')   
+            st.write(f'Latitud: {latitud}, Longitud: {longitud}')
         else:
             st.error('No se pudo geocodificar la dirección.')
-    else:
-        st.warning('Por favor ingresa una dirección antes de obtener la latitud y longitud.')
+
+# Definir el radio de 2 km
+radio_km = 3
+
 # Función para filtrar lugares dentro del radio especificado
 def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
     def calcular_distancia(row):
@@ -56,25 +51,29 @@ def filtrar_lugares_cercanos(resumen_dfcompleto, lat_user, lon_user, radio_km):
         lugar_lon = row['longitude_x']
         distancia = geodesic((lat_user, lon_user), (lugar_lat, lugar_lon)).kilometers
         return distancia
+
     resumen_dfcompleto['distancia'] = resumen_dfcompleto.apply(calcular_distancia, axis=1)
     lugares_cercanos2 = resumen_dfcompleto[resumen_dfcompleto['distancia'] <= radio_km]
 
     return lugares_cercanos2
 
-if 'latitud' in locals() and 'longitud' in locals():  
+if 'latitud' in locals() and 'longitud' in locals():
+    # Filtrar los lugares dentro del radio especificado
+    lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
+    # Ahora puedes continuar con el procesamiento de 'lugares_cercanos2'
+else:
+    # Indicar al usuario que primero debe ingresar la dirección y obtener la latitud y longitud.
+    st.warning('Por favor, ingresa una dirección y obtén la latitud y longitud antes de continuar.')
 
-            st.title("Kanguro GPT!🤖")
-            st.markdown('¡Ahora preguntame lo que quieras! Estoy para ayudarte 🤗')
 
-            # Filtrar los lugares dentro del radio especificado
-            lugares_cercanos2 = filtrar_lugares_cercanos(resumen_dfcompleto, latitud, longitud, radio_km)
-            dataset = lugares_cercanos2
-            
-            dataset_message = dataset.to_string(index=False) #f"Este es el contenido del DataFrame:\n{}"
-            st.session_state.messages.append({"role": "assistant", "content": dataset_message})
-                        
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# Agrega el contenido del DataFrame al historial de conversación solo una vez
+if not st.session_state.get("data_added", False)and 'lugares_cercanos2' in locals():
+    dataset_message = f"Este es el contenido del DataFrame:\n{lugares_cercanos2.to_string(index=False)}"
+    st.session_state.messages.append({"role": "assistant", "content": dataset_message})
+    st.session_state.data_added = True
 
 if "model" not in st.session_state:
                 st.session_state.model = "gpt-3.5-turbo"
